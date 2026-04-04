@@ -1,50 +1,34 @@
 # Classed
 
-## User
-- id
-- email
-- username
+## Member
+- id //unique
+- username //name that shows to other members
 - passwordhash
 - createdAt
 
 
 ## UserActivity
-- id
-    - getUsername
+//get user activity. send to GUI to display
+- member.id
+    - member.getUsername
 - actionType
 - createdAt
 
-## UpMessage
-- //update message
 
 ## Song
 - str: name
 - str: authors
 
-
-# UnitBox
-- date
-- arrangement (how many unitboxs and how to arrange)
-- boolean: isopen (whether church is open)
+## Calendar
+...
 
 
-## SongsUnit(extends UnitBox)
-- super(
-    - date
-    - boolean: operation (whether church is open)
-)
-- decidedSongs
-- suggestedSongs
-- topic
+## Manager
+//manage which member serve on which date as what role
+- only calculate, store and return
 
 
 
-## PeopleUnit(extends UnitBox)
-- super(
-    - date
-    - boolean: operation (whether church is open)
-)
-- dict: assignments = {"userid":instrument}
 
 
 
