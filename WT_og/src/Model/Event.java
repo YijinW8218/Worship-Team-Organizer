@@ -2,18 +2,21 @@ package Model;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class Event {
     private LocalDate date;
     private LocalTime time;
     private String title;  //topic of the sermon
     private ArrayList<Song> songs;
+    private ArrayList<Member> team; //members who signed up to serve this event
 
-    public Event(LocalDate date, LocalTime time, String title, ArrayList<Song> songs) {
+    public Event(LocalDate date, LocalTime time, String title, ArrayList<Song> songs, ArrayList<Member> team) {
         this.date = date;
         this.time = time;
         this.title = title;
         this.songs = songs;
+        this.team = team;
     }
 
     //getter and setter
@@ -30,21 +33,44 @@ public class Event {
     public ArrayList<Song> getSongs() {return songs;} //notice: returned an ArrayList
 
     public void addSong(Song song) {
-        if (songs.contains(song)) {return;} //if the song already exist, don't do anything
-        songs.add(song);
+        if (songs.contains(song)) {return;} //if the song already exist in the list, don't do anything
+        songs.add(song); //add the song to songs
     }
 
     public void removeSong(Song song) {
         if (!songs.contains(song)) {return;} //if the song doesn't exist, don't do anything
-        songs.remove(song);
+        songs.remove(song); //remove the song to songs
+    }
+
+    public ArrayList<Member> getTeam() {return team;}
+
+    public void addtoTeam(Member member) {
+        if (team.contains(member)) {return;} //if the member already exist in the team, don't do anything
+        team.add(member); // add the member to team
+    }
+
+    public void removefromTeam(Member member) {
+        if (!team.contains(member)) {return;} //if the member doesn't exist, don't do anything
+        team.remove(member); //remove the member form team
     }
 
     @Override
     public String toString() {
-        return "Event{" +
-                "date=" + date +
-                ", time=" + time +
-                ", title='" + title + '\'' +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("Date:").append(getDate()).append("\n");
+        sb.append("Time:").append(getTime()).append("\n");
+        sb.append("Title:").append(getTitle()).append("\n");
+
+        sb.append("Songs:" + "\n");
+        for (Song song : getSongs()) {
+            sb.append("\t").append(song).append("\n"));
+        }
+
+        sb.append("Team:" + "\n");
+        for (Member member : getTeam()) {
+            sb.append("\t").append(member).append("\n"));
+        }
+
+        return sb.toString();
     }
 }
