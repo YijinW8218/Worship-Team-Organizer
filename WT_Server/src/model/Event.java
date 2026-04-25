@@ -1,4 +1,4 @@
-package Model;
+package model;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -54,18 +54,18 @@ public class Event {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Date:").append(getDate()).append("\n");
-        sb.append("Time:").append(getTime()).append("\n");
-        sb.append("Title:").append(getTitle()).append("\n");
+        sb.append("Date:").append(getDate()).append("|");
+        sb.append("Time:").append(getTime()).append("|");
+        sb.append("Title:").append(getTitle()).append("|");
 
-        sb.append("Songs:" + "\n");
+        sb.append("Songs:" + "|");
         for (Song song : getSongs()) {
-            sb.append("\t").append(song).append("\n");
+            sb.append("\t").append(song).append("|");
         }
 
-        sb.append("Team:" + "\n");
+        sb.append("Team:" + "|");
         for (Member member : getTeam()) {
-            sb.append("\t").append(member).append("\n");
+            sb.append("\t").append(member).append("|");
         }
 
         return sb.toString();
