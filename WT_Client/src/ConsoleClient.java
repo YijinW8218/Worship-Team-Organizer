@@ -6,7 +6,7 @@ public class ConsoleClient {
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void start(Client client) {
-        System.out.println("=== 敬拜团队排班系统（命令行版） ===");
+        System.out.println("Worship Team Organizer:");
 
         boolean running = true;
 
@@ -26,52 +26,48 @@ public class ConsoleClient {
                     break;
                 case "0":
                     running = false;
-                    System.out.println("程序结束");
+                    System.out.println("bye.");
                     break;
                 default:
-                    System.out.println("无效输入，请重新选择");
+                    System.out.println("Invalid input. Try again.");
             }
         }
     }
     private static void printMenu() {
         System.out.println();
-        System.out.println("请选择操作：");
-        System.out.println("1. 添加事件");
-        System.out.println("2. 查看某天的事件");
-        System.out.println("3. 删除事件");
-        System.out.println("0. 退出");
-        System.out.print("输入选项：");
+        System.out.println("Enter an operation:");
+        System.out.println("1. Add an event");
+        System.out.println("2. Check the events in a date");
+        System.out.println("3. Delete an event");
+        System.out.println("0. Exit");
+        System.out.print("Enter：");
     }
 
-    // -------------------------
-    // 1. 添加事件
-    // -------------------------
+
     private static void addEventUI(Client client) {
         try {
             //Client send command to Server
             //dateString format:2026-4-21;    timeString format: 14:30
-            System.out.print("输入日期 (YYYY-MM-DD): ");
+            System.out.print("Enter date (ex.2026-04-06): ");
             String dateString = scanner.nextLine().trim();
-            System.out.print("输入时间 (HH:MM): ");
+            System.out.print("Enter time (ex.16:08): ");
             String timeString = scanner.nextLine().trim();
-            System.out.print("输入标题: ");
+            System.out.print("Enter title: ");
             String title = scanner.nextLine().trim();
 
             String command_msg = "ADD_EVENT|" + dateString + "|" + timeString + "|" + title;
             client.send(command_msg);
 
-            System.out.println("已添加事件");
+            System.out.println("Event has been added.");
 
         } catch (Exception ex) {
-            System.out.println("输入格式错误，请重试");
+            System.out.println("Invalid format. Try again.");  //todo: add input test
         }
     }
-    // -------------------------
-    // 2. 查看事件
-    // -------------------------
+
     private static void listEventsUI(Client client) {
         try {
-            System.out.print("输入日期 (YYYY-MM-DD): ");
+            System.out.print("Enter date (ex.2026-04-06): ");
             String dateString = scanner.nextLine().trim();
 
             String command_msg = "LIST_EVENT|" + dateString;
@@ -79,23 +75,20 @@ public class ConsoleClient {
             // Client will listen to server and print the list.
 
         } catch (Exception ex) {
-            System.out.println("输入格式错误，请重试");
+            System.out.println("Invalid format. Try again.");
         }
     }
 
-    // -------------------------
-    // 3. 删除事件
-    // -------------------------
     private static void removeEventUI(Client client) {
         try {
-            System.out.print("输入要删除的事件 title: ");
+            System.out.print("Enter the title of the event: ");
             String title = scanner.nextLine().trim();
 
             String command_msg = "REMOVE_EVENT|" + title;
             client.send(command_msg);
             //server will receive and delete the event
         } catch (Exception ex) {
-            System.out.println("输入格式错误，请重试");
+            System.out.println("Invalid format. Try again.");
         }
     }
 }

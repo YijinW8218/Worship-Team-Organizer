@@ -52,7 +52,6 @@ public class Server {
                 }else if (msgFromClient.startsWith("ADD_EVENT")) {
                     String[] parts = msgFromClient.split("\\|");
                     if (parts.length >= 4) {
-                        // 索引从 1 开始，跳过第一个（COMMAND）
                         String dateString = parts[1];
                         String timeString = parts[2];
                         String title = parts[3];
@@ -65,7 +64,6 @@ public class Server {
                         String dateString = parts[1];
                         ArrayList<Event> events = cl_listEvents(dateString);
                         //transfer events list to string
-                        System.out.println(events); //仅调试用
                         StringBuilder sb = new StringBuilder();
                         sb.append("Events List:");
                         for (Event e : events) {

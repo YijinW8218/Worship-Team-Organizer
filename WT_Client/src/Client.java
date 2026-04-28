@@ -49,7 +49,7 @@ public class Client {
         String content = msgRecieve.substring("Events List:".length()); //skip the title of the data
         String[] eventStrings = content.split("\\|");
 
-        System.out.println("=== 事件列表 ===");
+        System.out.println("=== Events List ===");
         for (String e : eventStrings) {
             if (!e.isBlank()) {
                 System.out.println(e.trim());

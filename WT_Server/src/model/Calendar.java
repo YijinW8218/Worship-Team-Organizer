@@ -39,18 +39,17 @@ public class Calendar {
     }
 
     public Event searchByTitle(String title) {
-        //遍历搜索
         for (LocalDate date : eventsInDate.keySet()) {
             for (Event event : eventsInDate.get(date)) {
                 if (event.getTitle().equalsIgnoreCase(title)) {
-                    return event; // 返回第一个匹配的 Event
+                    return event; // return the first Event among the same name
                 }
             }
         }
-        return null; // 没找到
+        return null;
     }
 
-    // 程序关闭时保存
+
     public void save() {
         Storage.save(eventsInDate);
     }
