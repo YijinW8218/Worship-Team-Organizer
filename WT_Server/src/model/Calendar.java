@@ -1,5 +1,7 @@
 package model;
 
+import storage.Storage;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +10,11 @@ import java.util.Map;
 // this class manage different events on different dates.
 public class Calendar {
     private Map<LocalDate, ArrayList<Event>> eventsInDate = new HashMap<>(); //the list of all the events in one day + the date
+
+    public Calendar() {
+        //constructor
+        eventsInDate = Storage.load();
+    }
 
     public void addEvent(Event event) {
         LocalDate date = event.getDate();
@@ -30,6 +37,25 @@ public class Calendar {
             eventsInDate.remove(date); //if the date is empty, delete the key from calendar
         }
     }
+
+    public Event searchByTitle(String title) {
+        //遍历搜索
+        for (LocalDate date : eventsInDate.keySet()) {
+            for (Event event : eventsInDate.get(date)) {
+                if (event.getTitle().equalsIgnoreCase(title)) {
+                    return event; // 返回第一个匹配的 Event
+                }
+            }
+        }
+        return null; // 没找到
+    }
+
+    // 程序关闭时保存
+    public void save() {
+        Storage.save(eventsInDate);
+    }
+
+
 
 
 

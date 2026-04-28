@@ -8,6 +8,7 @@ public class Client {
     private BufferedReader bufferedReader = null;
     private BufferedWriter bufferedWriter = null;
 
+
     public void connect() {
         try{
             //establish socket connection to server

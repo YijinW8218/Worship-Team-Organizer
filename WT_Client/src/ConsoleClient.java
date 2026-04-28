@@ -11,7 +11,7 @@ public class ConsoleClient {
         boolean running = true;
 
         while (running) {
-            printMenu();
+            printMenu(); //TODO:(bug) UI printing menu before printing message from Server
             String choice = scanner.nextLine().trim();
 
             switch (choice) {
@@ -19,10 +19,10 @@ public class ConsoleClient {
                     addEventUI(client);
                     break;
                 case "2":
-                    listEventsUI();
+                    listEventsUI(client);
                     break;
                 case "3":
-                    removeEventUI();
+                    removeEventUI(client);
                     break;
                 case "0":
                     running = false;

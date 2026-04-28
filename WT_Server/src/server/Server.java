@@ -1,3 +1,5 @@
+package server;
+
 import model.Calendar;
 import model.Event;
 
@@ -10,11 +12,12 @@ import java.util.ArrayList;
 
 
 public class Server {
-    private Socket socket = null;
-    ServerSocket serverSocket = null;
+    private static Socket socket = null;
+    private static ServerSocket serverSocket = null;
+
     private static Calendar calendar = new Calendar();
 
-    public void listenClient(int port) throws IOException{
+    public static void listenClient(int port) throws IOException{
         serverSocket = new ServerSocket(port);
         System.out.println("Waiting for the client request...");
         while (true) {
@@ -24,7 +27,7 @@ public class Server {
         }
     }
 
-    private void HandleClient(Socket socket) {
+    private static void HandleClient(Socket socket) {
         try{
             System.out.println("Client connected:" + socket);
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -105,13 +108,16 @@ public class Server {
     }
 
     public static void cl_removeEvent(String title) {
-        Event e = calendar.searchbytitle(title);
-        //todo: search event by name
-        //todo:start here
-        calendar.removeEvent(e);
+        Event event = calendar.searchByTitle(title);
+        calendar.removeEvent(event);
     }
 
     public static ArrayList<Event> cl_listEvents(String dateString) {
         return calendar.getEvents(LocalDate.parse(dateString));
+    }
+
+    public static void shutdown() {
+        calendar.save();
+        System.out.println("[server.Server] Saved all data before shutdown.");
     }
 }
