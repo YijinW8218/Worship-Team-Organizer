@@ -16,3 +16,6 @@
 - Java swing
 
 
+## conflict in two client
+- you can merge
+- I can have a request from server
