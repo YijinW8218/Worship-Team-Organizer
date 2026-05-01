@@ -1,3 +1,4 @@
+import java.awt.event.ActionListener;
 import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -10,8 +11,30 @@ public class ConsoleClient {
         System.out.println("Worship Team Organizer:");
 
         boolean running = true;
+        boolean running2 = true;
 
+        // log in page
         while (running) {
+            printLogin();
+            String choice = scanner.nextLine().trim();
+
+            switch (choice) {
+                case "1":
+                    logInUI(client);
+                    break;
+                case "2":
+                    registerUI(client);
+                    break;
+                default:
+                    System.out.println("Invalid input. Try again.");
+            }
+            running = false;
+            System.out.println("bye.");
+            break;
+        }
+
+        // main menu
+        while (running2) {
             printMenu(); //TODO:(bug) UI printing menu before printing message from Server
             String choice = scanner.nextLine().trim();
 
@@ -28,8 +51,11 @@ public class ConsoleClient {
                 case "4":
                     editSongsUI(client);
                     break;
+                case "5":
+                    editTeamUI(client);
+                    break;
                 case "0":
-                    running = false;
+                    running2 = false;
                     System.out.println("bye.");
                     break;
                 default:
@@ -37,6 +63,44 @@ public class ConsoleClient {
             }
         }
     }
+
+    private static void printLogin() {
+        System.out.println("Welcome to WT.");
+        System.out.println("1. Log in");
+        System.out.println("2. Register (if you are a new member)");
+        System.out.println("Enter");
+    }
+
+    private static void logInUI(Client client) {
+        try {
+            System.out.println("Enter username:");
+            String username = scanner.nextLine().trim();
+            System.out.println("Enter password:");
+            String password = scanner.nextLine().trim();
+
+            String command_msg = "LOGIN|" + username + "|" + password;
+            client.send(command_msg);
+        }catch (Exception ex) {
+            System.out.println("Try again.");
+        }
+    }
+
+    private static void registerUI(Client client) {
+        try {
+            System.out.println("Enter username:");
+            String username = scanner.nextLine().trim();
+            System.out.println("Enter password:");
+            String password = scanner.nextLine().trim();
+
+            String command_msg = "REGISTER|" + username + "|" + password;
+            client.send(command_msg);
+        }catch (Exception ex) {
+            System.out.println("Try again.");
+        }
+    }
+
+
+
     private static void printMenu() {
         System.out.println();
         System.out.println("Enter an operation:");
@@ -44,6 +108,7 @@ public class ConsoleClient {
         System.out.println("2. Check the events in a date");
         System.out.println("3. Delete an event");
         System.out.println("4. Edit songs");
+        System.out.println("5. Edit team");
         System.out.println("0. Exit");
         System.out.print("Enter：");
     }
@@ -135,7 +200,49 @@ public class ConsoleClient {
                     System.out.println("Invalid format. Try again.");
                 }
             }
+        } catch (Exception ex) {
+            System.out.println("Invalid format. Try again.");
+            String choice = scanner.nextLine().trim();
+        }
+    }
 
+    private static void editTeamUI(Client client) {
+        try {
+            //first, list events
+            System.out.println("Enter date to see events' titles:(ex.2026-04-06)");
+            String dateString = scanner.nextLine().trim();
+            String command_msg = "LIST_EVENT|" + dateString;
+            client.send(command_msg);
+            // Client will listen to server and print the list.
+
+            //second, choose event to add/remove members
+            System.out.println("Enter the title of event which you want to edit the team");
+            String title = scanner.nextLine().trim();
+            String command_msg2 = "LIST_MEMBERS|" + title;
+            client.send(command_msg2);
+            // Client will listen to server and print the list.
+            //choose add/remove members
+            while (true) {
+                System.out.println("1. Add a member");
+                System.out.println("2. Remove a member");
+                System.out.println("Choose an operations:");
+                String choice = scanner.nextLine().trim();
+                if (choice.equals("1")) { //choose to add a member
+                    System.out.println("Enter the name of the member that you want to add:");
+                    String name = scanner.nextLine().trim();
+                    String command_msg3 = "ADD_MEMBER|" + title  + "|" + name;
+                    client.send(command_msg3);
+                    break;
+                }else if (choice.equals("2")) { //choose to remove a member
+                    System.out.println("Enter the name of the member that you want to remove:");
+                    String name = scanner.nextLine().trim();
+                    String command_msg4 = "REMOVE_MEMBER|" + title  + "|" + name;
+                    client.send(command_msg4);
+                    break;
+                }else {
+                    System.out.println("Invalid format. Try again.");
+                }
+            }
         } catch (Exception ex) {
             System.out.println("Invalid format. Try again.");
             String choice = scanner.nextLine().trim();

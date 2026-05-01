@@ -9,20 +9,23 @@ import java.util.*;
 
 public class Storage {
 
-    private static final String FILE_NAME = "events.json";
+    private static final String FILE_NAME = "events.csv";
 
 
     public static void save(Map<LocalDate, ArrayList<Event>> eventsInDate) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
 
             for (LocalDate date : eventsInDate.keySet()) {
-                for (Event e : eventsInDate.get(date)) {
-                    writer.write(
-                            date.toString() + "," +
-                                    e.getTime().toString() + "," +
-                                    e.getTitle()
-                    );
-                    writer.newLine();
+                ArrayList<Event> events = eventsInDate.get(date);
+                if (events != null) {
+                    for (Event e : events) {
+                        writer.write(
+                                date.toString() + "," +
+                                        e.getTime().toString() + "," +
+                                        e.getTitle()
+                        );
+                        writer.newLine();
+                    }
                 }
             }
 
@@ -49,13 +52,15 @@ public class Storage {
             while ((line = reader.readLine()) != null) {
                 // format：2026-04-27,18:08,Practice
                 String[] parts = line.split(",");
-                LocalDate date = LocalDate.parse(parts[0]);
-                LocalTime time = LocalTime.parse(parts[1]);
-                String title = parts[2];
+                if (parts.length == 3) {
+                    LocalDate date = LocalDate.parse(parts[0]);
+                    LocalTime time = LocalTime.parse(parts[1]);
+                    String title = parts[2];
 
-                Event e = new Event(date, time, title);
+                    Event e = new Event(date, time, title);
 
-                map.computeIfAbsent(date, k -> new ArrayList<>()).add(e);
+                    map.computeIfAbsent(date, k -> new ArrayList<>()).add(e);
+                }
             }
 
             System.out.println("[storage.Storage] Loaded events from " + FILE_NAME);
