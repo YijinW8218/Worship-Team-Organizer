@@ -29,14 +29,14 @@ public class Event {
 
     public ArrayList<Song> getSongs() {return songs;} //notice: returned an ArrayList
 
-    public void addSong(Song song) {
+    public void addSong(String name, String author) {
+        Song song = new Song(name, author); // create song instance
         if (songs.contains(song)) {return;} //if the song already exist in the list, don't do anything
         songs.add(song); //add the song to songs
     }
 
-    public void removeSong(Song song) {
-        if (!songs.contains(song)) {return;} //if the song doesn't exist, don't do anything
-        songs.remove(song); //remove the song to songs
+    public void removeSong(String name) {
+        songs.removeIf(song -> song.getName().equalsIgnoreCase(name));
     }
 
     public ArrayList<Member> getTeam() {return team;}

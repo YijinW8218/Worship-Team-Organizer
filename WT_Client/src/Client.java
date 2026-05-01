@@ -37,7 +37,9 @@ public class Client {
                 while ((msgRecieve = bufferedReader.readLine()) != null){
                     if (msgRecieve.startsWith("Events List:")) {
                         printEventList(msgRecieve);
-                    }else {
+                    } else if ((msgRecieve.startsWith("Songs List:"))) {
+                        printSongList(msgRecieve);
+                    } else {
                         System.out.println("Server:" + msgRecieve);
                     }
                 }
@@ -49,10 +51,22 @@ public class Client {
         String content = msgRecieve.substring("Events List:".length()); //skip the title of the data
         String[] eventStrings = content.split("\\|");
 
-        System.out.println("=== Events List ===");
+        System.out.println("Events List:");
         for (String e : eventStrings) {
             if (!e.isBlank()) {
                 System.out.println(e.trim());
+            }
+        }
+    }
+
+    private void printSongList(String msgRecieve) {
+        String content = msgRecieve.substring("Songs List:".length()); //skip the title of the data
+        String[] songStrings = content.split("\\|");
+
+        System.out.println("Songs List:");
+        for (String s : songStrings) {
+            if (!s.isBlank()) {
+                System.out.println(s.trim());
             }
         }
     }

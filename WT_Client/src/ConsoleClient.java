@@ -1,3 +1,4 @@
+import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Scanner;
@@ -24,6 +25,9 @@ public class ConsoleClient {
                 case "3":
                     removeEventUI(client);
                     break;
+                case "4":
+                    editSongsUI(client);
+                    break;
                 case "0":
                     running = false;
                     System.out.println("bye.");
@@ -39,6 +43,7 @@ public class ConsoleClient {
         System.out.println("1. Add an event");
         System.out.println("2. Check the events in a date");
         System.out.println("3. Delete an event");
+        System.out.println("4. Edit songs");
         System.out.println("0. Exit");
         System.out.print("Enter：");
     }
@@ -58,7 +63,6 @@ public class ConsoleClient {
             String command_msg = "ADD_EVENT|" + dateString + "|" + timeString + "|" + title;
             client.send(command_msg);
 
-            System.out.println("Event has been added.");
 
         } catch (Exception ex) {
             System.out.println("Invalid format. Try again.");  //todo: add input test
@@ -89,6 +93,52 @@ public class ConsoleClient {
             //server will receive and delete the event
         } catch (Exception ex) {
             System.out.println("Invalid format. Try again.");
+        }
+    }
+
+    private static void editSongsUI(Client client) {
+        try {
+            //first, list events
+            System.out.println("Enter date to see events' titles:(ex.2026-04-06)");
+            String dateString = scanner.nextLine().trim();
+            String command_msg = "LIST_EVENT|" + dateString;
+            client.send(command_msg);
+                // Client will listen to server and print the list.
+
+            //second, choose event to add/remove songs
+            System.out.println("Enter the title of event which you want to edit songs");
+            String title = scanner.nextLine().trim();
+            String command_msg2 = "LIST_SONGS|" + title;
+            client.send(command_msg2);
+                // Client will listen to server and print the list.
+            //choose add/remove songs
+            while (true) {
+                System.out.println("1. Add a song");
+                System.out.println("2. Remove a song");
+                System.out.println("Choose an operations:");
+                String choice = scanner.nextLine().trim();
+                if (choice.equals("1")) { //choose to add a song
+                    System.out.println("Enter the name of the song that you want to add:");
+                    String name = scanner.nextLine().trim();
+                    System.out.println("Enter the author of the song:");
+                    String author = scanner.nextLine().trim();
+                    String command_msg3 = "ADD_SONG|" + title  + "|" + name  + "|" + author;
+                    client.send(command_msg3);
+                    break;
+                }else if (choice.equals("2")) { //choose to remove a song
+                    System.out.println("Enter the name of the song that you want to remove:");
+                    String name = scanner.nextLine().trim();
+                    String command_msg4 = "REMOVE_SONG|" + title  + "|" + name;
+                    client.send(command_msg4);
+                    break;
+                }else {
+                    System.out.println("Invalid format. Try again.");
+                }
+            }
+
+        } catch (Exception ex) {
+            System.out.println("Invalid format. Try again.");
+            String choice = scanner.nextLine().trim();
         }
     }
 }

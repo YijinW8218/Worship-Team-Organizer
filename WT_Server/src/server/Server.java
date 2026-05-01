@@ -2,6 +2,7 @@ package server;
 
 import model.Calendar;
 import model.Event;
+import model.Song;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -55,7 +56,16 @@ public class Server {
                         String dateString = parts[1];
                         String timeString = parts[2];
                         String title = parts[3];
-                        cl_AddEvent(dateString, timeString, title);
+                        boolean success = cl_AddEvent(dateString, timeString, title);
+                        if (success) {
+                            bufferedWriter.write("A new event has been added.");
+                            bufferedWriter.newLine();
+                            bufferedWriter.flush();
+                        }else{
+                            bufferedWriter.write("Repeated event's title. Fail to add event.");
+                            bufferedWriter.newLine();
+                            bufferedWriter.flush();
+                        }
                     }
                 }else if (msgFromClient.startsWith("LIST_EVENT")) {
                     String[] parts = msgFromClient.split("\\|");
@@ -83,6 +93,39 @@ public class Server {
                         String title = parts[1];
                         cl_removeEvent(title);
                     }
+                }else if (msgFromClient.startsWith("ADD_SONG")) {
+                    String[] parts = msgFromClient.split("\\|");
+                    if (parts.length>=4) {
+                        String eventTitle = parts[1];
+                        String name = parts[2];
+                        String author = parts[3];
+                        cl_AddSong(eventTitle, name, author);
+                    }
+                }else if (msgFromClient.startsWith("REMOVE_SONG")) {
+                    String[] parts = msgFromClient.split("\\|");
+                    if (parts.length>=3) {
+                        String eventTitle = parts[1];
+                        String name = parts[2];
+                        cl_RemoveSong(eventTitle, name);
+                    }
+                }else if (msgFromClient.startsWith("LIST_SONGS")) {
+                    String[] parts = msgFromClient.split("\\|");
+                    if (parts.length>=2) {
+                        String eventTitle = parts[1];
+                        ArrayList<Song> songs = cl_ListSong(eventTitle);
+                        //transfer songs list to string
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("Songs List:");
+                        for (Song s : songs) {
+                            String s_string = s.toString() + "|"; //client will split and change rows at |
+                            sb.append(s_string);
+                        }
+                        String songs_string = sb.toString();
+                        //send the songs list in string to client
+                        bufferedWriter.write(songs_string);
+                        bufferedWriter.newLine();
+                        bufferedWriter.flush();
+                    }
                 }
                 else{
                     String msgToSend = "invalid command";
@@ -90,19 +133,24 @@ public class Server {
                     bufferedWriter.newLine();
                     bufferedWriter.flush();
                 }
-
             }
         }catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void cl_AddEvent(String dateString, String timeString, String title) {
-        //1. create the event
-        //dateString format:2026-4-21;    timeString format: 14:30
-        Event e = new Event( LocalDate.parse(dateString), LocalTime.parse(timeString), title);
-        //2. add the event to calendar
-        calendar.addEvent(e);
+    public static boolean cl_AddEvent(String dateString, String timeString, String title) {
+        boolean success = false;
+        // don't create event if title repeat
+        if (calendar.searchByTitle(title) == null) {
+            //create the event
+            //dateString format:2026-4-21;    timeString format: 14:30
+            Event e = new Event(LocalDate.parse(dateString), LocalTime.parse(timeString), title);
+            //add the event to calendar
+            calendar.addEvent(e);
+            success = true;
+        }
+        return success;
     }
 
     public static void cl_removeEvent(String title) {
@@ -112,6 +160,22 @@ public class Server {
 
     public static ArrayList<Event> cl_listEvents(String dateString) {
         return calendar.getEvents(LocalDate.parse(dateString));
+    }
+
+    public static void cl_AddSong(String eventTitle, String name, String author) {
+        Event event = calendar.searchByTitle(eventTitle);
+        event.addSong(name, author);
+    }
+
+    public static void cl_RemoveSong(String eventTitle, String name) {
+        Event event = calendar.searchByTitle(eventTitle);
+        event.removeSong(name);
+    }
+
+    public static ArrayList<Song> cl_ListSong(String eventTitle) {
+        Event event = calendar.searchByTitle(eventTitle);
+        ArrayList<Song> songs = event.getSongs();
+        return songs;
     }
 
     public static void shutdown() {
