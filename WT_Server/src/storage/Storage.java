@@ -9,11 +9,14 @@ import java.util.*;
 
 public class Storage {
 
-    private static final String FILE_NAME = "events.csv";
+    private static final String fname = "events.csv";
 
 
     public static void save(Map<LocalDate, ArrayList<Event>> eventsInDate) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
+        try {
+            FileWriter filewriter = new FileWriter(fname);
+            BufferedWriter writer = new BufferedWriter(filewriter);
+
 
             for (LocalDate date : eventsInDate.keySet()) {
                 ArrayList<Event> events = eventsInDate.get(date);
@@ -28,8 +31,10 @@ public class Storage {
                     }
                 }
             }
+            writer.flush();
+            writer.close();
 
-            System.out.println("[storage.Storage] Saved events to " + FILE_NAME);
+            System.out.println("[storage.Storage] Saved events to " + fname);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -40,17 +45,19 @@ public class Storage {
     public static Map<LocalDate, ArrayList<Event>> load() {
         Map<LocalDate, ArrayList<Event>> map = new HashMap<>();
 
-        File file = new File(FILE_NAME);
+        File file = new File(fname);
         if (!file.exists()) {
             System.out.println("[storage.Storage] No existing file, starting fresh.");
             return map;
         }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
-            String line;
+        try {
+            FileReader fileReader = new FileReader(fname);
+            BufferedReader reader = new BufferedReader(fileReader);
 
+            String line;
             while ((line = reader.readLine()) != null) {
-                // format：2026-04-27,18:08,Practice
+                // 2026-04-27,18:08,Practice
                 String[] parts = line.split(",");
                 if (parts.length == 3) {
                     LocalDate date = LocalDate.parse(parts[0]);
@@ -63,8 +70,9 @@ public class Storage {
                 }
             }
 
-            System.out.println("[storage.Storage] Loaded events from " + FILE_NAME);
+            System.out.println("[storage.Storage] Loaded events from " + fname);
 
+            reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

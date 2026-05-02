@@ -1,5 +1,3 @@
-package server;
-
 import model.Calendar;
 import model.Event;
 import model.Member;
@@ -16,47 +14,39 @@ import java.util.ArrayList;
 
 
 public class Server {
-    private static Socket socket = null;
-    private static ServerSocket serverSocket = null;
-
     private static Calendar calendar = new Calendar();
     private static UsersInfo usersInfo = new UsersInfo();
     private static UserActivity userActivity = new UserActivity();
 
-    public static void listenClient(int port) throws IOException{
-        serverSocket = new ServerSocket(port);
-        System.out.println("Waiting for the client request...");
-        while (true) {
-            //create socket and waiting for client connection
-            Socket clsoc = serverSocket.accept(); // client socket
-            new Thread(()->HandleClient(clsoc)).start();
-        }
-    }
-
-    private static void HandleClient(Socket socket) {
-        try{
-            System.out.println("Client connected:" + socket);
+    public static void main(String[] args) {
+        try {
+            ServerSocket serverSocket = new ServerSocket(1234);
+            System.out.println("Waiting for the client request...");
+            Socket client = serverSocket.accept();
+            System.out.println("Client connected:" +client);
             String currentUser = null;
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
 
             while (true) {
-                //chat with the Client
-                String msgFromClient = bufferedReader.readLine();
-                //first check if client manually disconnected
+                String msgFromClient = bufferedReader.readLine(); //receive client
                 if (msgFromClient == null) {
                     System.out.println("Client disconnected.");
                     break;
-                }else { msgFromClient = msgFromClient.trim(); } //cancel space and empty lines
-                //record the msg from the client
-                System.out.println(socket + ":" + msgFromClient);
+                }else {
+                    msgFromClient = msgFromClient.trim(); //space and empty lines
+                    System.out.println(client + ":" + msgFromClient);
+                }
 
-                //check if client asked for quit
+
+
                 if ("QUIT".equals(msgFromClient)) {
-                    socket.close();
+                    client.close();
                     System.out.println("Client disconnected.");
                     break;
-                } // operate LOGIN command
+                }
+
+
                 else if (msgFromClient.startsWith("LOGIN")) {
                     String[] parts = msgFromClient.split("\\|");
                     String username = parts[1];
@@ -64,28 +54,26 @@ public class Server {
 
                     if (usersInfo.login(username, password)) { //check if username exists and password is right
                         currentUser = username; //record the current username
-                        bufferedWriter.write("Successfully logged in.");
+                        System.out.println("Successfully logged in.");
                     } else {
-                        bufferedWriter.write("Fail to log in. Try again.");
+                        System.out.println("Fail to log in. Try again.");
                     }
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
-                    continue;
-                } //operate REGISTER command
+                }
+
+
                 else if (msgFromClient.startsWith("REGISTER")) {
                     String[] parts = msgFromClient.split("\\|");
                     String username = parts[1];
                     String password = parts[2];
                     if (usersInfo.register(username, password)) { //check if username repeated
                         currentUser = username; //record the current username
-                        bufferedWriter.write("Successfully register. Welcome.");
+                        System.out.println("Successfully register. Welcome.");
                     } else {
-                        bufferedWriter.write("Username already exists. Try again with another username.");
+                        System.out.println("Username already exists. Try again with another username.");
                     }
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
-                    continue;
-                } //operate ADD_EVENT command
+                }
+
+
                 else if (msgFromClient.startsWith("ADD_EVENT")) {
                     String[] parts = msgFromClient.split("\\|");
                     if (parts.length == 4) {
@@ -94,39 +82,38 @@ public class Server {
                         String title = parts[3];
                         boolean success = cl_AddEvent(dateString, timeString, title);
                         if (success) {
-                            bufferedWriter.write("A new event has been added.");
-                            bufferedWriter.newLine();
-                            bufferedWriter.flush();
+                            System.out.println("A new event has been added.");
                         }else{
-                            bufferedWriter.write("Repeated event's title. Fail to add event.");
-                            bufferedWriter.newLine();
-                            bufferedWriter.flush();
+                            System.out.println("Repeated event's title. Fail to add event.");
                         }
                         userActivity.logUserActivity(currentUser, msgFromClient); //update userActivity
                     }
-                } // operate LIST_EVENT command
+                }
+
+
                 else if (msgFromClient.startsWith("LIST_EVENT")) {
                     String[] parts = msgFromClient.split("\\|");
                     if (parts.length==2) {
-                        //get the events
                         String dateString = parts[1];
                         ArrayList<Event> events = cl_listEvents(dateString);
                         //transfer events list to string
                         StringBuilder sb = new StringBuilder();
                         sb.append("Events List:");
                         for (Event e : events) {
-                            String e_string = e.toString() + "|"; //client will split and change rows at |
+                            String e_string = e.toString() + "|";
                             sb.append(e_string);
                         }
                         String events_string = sb.toString();
-                        //send the events list in string to client
+                        //send the events list to client
                         bufferedWriter.write(events_string);
                         bufferedWriter.newLine();
                         bufferedWriter.flush();
 
                         userActivity.logUserActivity(currentUser, msgFromClient); //update userActivity
                     }
-                } // operate REMOVE_EVENT command
+                }
+
+
                 else if (msgFromClient.startsWith("REMOVE_EVENT")) {
                     String[] parts = msgFromClient.split("\\|");
                     if (parts.length==2) {
@@ -135,7 +122,9 @@ public class Server {
                         cl_removeEvent(title);
                         userActivity.logUserActivity(currentUser, msgFromClient); //update userActivity
                     }
-                } // operate ADD_SONG command
+                }
+
+
                 else if (msgFromClient.startsWith("ADD_SONG")) {
                     String[] parts = msgFromClient.split("\\|");
                     if (parts.length==4) {
@@ -145,7 +134,9 @@ public class Server {
                         cl_AddSong(eventTitle, name, author);
                         userActivity.logUserActivity(currentUser, msgFromClient); //update userActivity
                     }
-                } // operate REMOVE_SONG command
+                }
+
+
                 else if (msgFromClient.startsWith("REMOVE_SONG")) {
                     String[] parts = msgFromClient.split("\\|");
                     if (parts.length==3) {
@@ -154,7 +145,9 @@ public class Server {
                         cl_RemoveSong(eventTitle, name);
                         userActivity.logUserActivity(currentUser, msgFromClient); //update userActivity
                     }
-                } // operate LIST_SONGS command
+                }
+
+
                 else if (msgFromClient.startsWith("LIST_SONGS")) {
                     String[] parts = msgFromClient.split("\\|");
                     if (parts.length==2) {
@@ -164,17 +157,19 @@ public class Server {
                         StringBuilder sb = new StringBuilder();
                         sb.append("Songs List:");
                         for (Song s : songs) {
-                            String s_string = s.toString() + "|"; //client will split and change rows at |
+                            String s_string = s.toString() + "|";
                             sb.append(s_string);
                         }
                         String songs_string = sb.toString();
-                        //send the songs list in string to client
+                        //send the songs list to client
                         bufferedWriter.write(songs_string);
                         bufferedWriter.newLine();
                         bufferedWriter.flush();
                         userActivity.logUserActivity(currentUser, msgFromClient); //update userActivity
                     }
-                } // operate ADD_MEMBER to event.team
+                }
+
+
                 else if (msgFromClient.startsWith("ADD_MEMBER")) {
                     String[] parts = msgFromClient.split("\\|");
                     if (parts.length==3) {
@@ -192,7 +187,9 @@ public class Server {
                         usersInfo.save(); //update
                         userActivity.logUserActivity(currentUser, msgFromClient); //update userActivity
                     }
-                } // operate REMOVE_MEMBER from event.team
+                }
+
+
                 else if (msgFromClient.startsWith("REMOVE_MEMBER")) {
                     String[] parts = msgFromClient.split("\\|");
                     if (parts.length==3) {
@@ -210,7 +207,9 @@ public class Server {
                         usersInfo.save(); //update
                         userActivity.logUserActivity(currentUser, msgFromClient); //update userActivity
                     }
-                } //operate LIST_MEMBER from event.team
+                }
+
+
                 else if (msgFromClient.startsWith("LIST_MEMBERS")) {
                     String[] parts = msgFromClient.split("\\|");
                     if (parts.length==2) {
@@ -222,7 +221,7 @@ public class Server {
                                 sb.append(m.getUserName()).append("|");
                             }
                             String members_string = sb.toString();
-                            //send the members list in string to client
+                            //send the members list to client
                             bufferedWriter.write(members_string);
                             bufferedWriter.newLine();
                             bufferedWriter.flush();
@@ -233,26 +232,37 @@ public class Server {
 
 
                 else{
-                    String msgToSend = "invalid command";
-                    bufferedWriter.write(msgToSend);
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
+                    System.out.println("invalid command");
                 }
             }
-        }catch (IOException e) {
+
+            calendar.save();
+            usersInfo.save();
+            System.out.println("Server saved all data.");
+        } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+        }
+
+
+
+
+
+
+
+
+
+
+
 
     public static boolean cl_AddEvent(String dateString, String timeString, String title) {
         boolean success = false;
         // don't create event if title repeat
         if (calendar.searchByTitle(title) == null) {
-            //create the event
-            //dateString format:2026-4-21;    timeString format: 14:30
-            Event e = new Event(LocalDate.parse(dateString), LocalTime.parse(timeString), title);
-            //add the event to calendar
-            calendar.addEvent(e);
+            LocalDate date = LocalDate.parse(dateString);
+            LocalTime time = LocalTime.parse(timeString);
+            Event event = new Event(date, time, title);
+            calendar.addEvent(event);
             success = true;
         }
         return success;
@@ -264,7 +274,8 @@ public class Server {
     }
 
     public static ArrayList<Event> cl_listEvents(String dateString) {
-        return calendar.getEvents(LocalDate.parse(dateString));
+        LocalDate date = LocalDate.parse(dateString);
+        return calendar.getEvents(date);
     }
 
     public static void cl_AddSong(String eventTitle, String name, String author) {
@@ -281,10 +292,5 @@ public class Server {
         Event event = calendar.searchByTitle(eventTitle);
         ArrayList<Song> songs = event.getSongs();
         return songs;
-    }
-
-    public static void shutdown() {
-        calendar.save();
-        System.out.println("[server.Server] Saved all data before shutdown.");
     }
 }

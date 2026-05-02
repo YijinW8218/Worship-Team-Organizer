@@ -12,13 +12,15 @@ public class Calendar {
     private Map<LocalDate, ArrayList<Event>> eventsInDate = new HashMap<>(); //the list of all the events in one day + the date
 
     public Calendar() {
-        //constructor
         eventsInDate = Storage.load();
     }
 
     public void addEvent(Event event) {
         LocalDate date = event.getDate();
-        eventsInDate.putIfAbsent(date, new ArrayList<>()); //if date is not a key yet, create new key
+        if (!eventsInDate.containsKey(date)) {
+            ArrayList<Event> eventslist = new ArrayList<>(); // if date is new, create new pair in map
+            eventsInDate.put(date,eventslist);
+        }
         eventsInDate.get(date).add(event);
     }
 
@@ -41,7 +43,7 @@ public class Calendar {
     public Event searchByTitle(String title) {
         for (LocalDate date : eventsInDate.keySet()) {
             for (Event event : eventsInDate.get(date)) {
-                if (event.getTitle().equalsIgnoreCase(title)) {
+                if (event.getTitle().equals(title)) {
                     return event; // return the first Event among the same name
                 }
             }

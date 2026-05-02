@@ -46,7 +46,10 @@ public class UsersInfo {
                 return;
             }
 
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            try {
+                FileReader fileReader = new FileReader(file);
+                BufferedReader reader = new BufferedReader(fileReader);
+
                 String line;
                 while ((line = reader.readLine()) != null) {
                     String[] parts = line.split(",");
@@ -54,6 +57,9 @@ public class UsersInfo {
                         users.add(new Member(Integer.parseInt(parts[0]), parts[1], parts[2])); // new member with id, username, password
                     }
                 }
+                reader.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -63,11 +69,17 @@ public class UsersInfo {
     // write to file
     public void save() {
         try {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            try {
+                FileWriter fileWriter = new FileWriter(file);
+                BufferedWriter writer = new BufferedWriter(fileWriter);
                 for (Member m : users) {
                     writer.write(m.getId() + "," + m.getUserName() + "," + m.getPassword());
                     writer.newLine();
                 }
+                writer.flush();
+                writer.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         } catch (Exception e) {
             e.printStackTrace();

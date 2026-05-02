@@ -24,7 +24,9 @@ public class UserActivity {
                 return;
             }
 
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            try {
+                FileReader filereader = new FileReader(file);
+                BufferedReader reader = new BufferedReader(filereader);
                 String line;
                 while ((line = reader.readLine()) != null) {
                     String[] parts = line.split(",");
@@ -32,23 +34,33 @@ public class UserActivity {
                         useracts.put(parts[0], parts[1]); // currentUser, action
                     }
                 }
+                reader.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    // write to file
+        // write to file
     private void save() {
-        try {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                for (Map.Entry<String, String> entry : useracts.entrySet()) {
-                    writer.write(entry.getKey() + "," + entry.getValue());
-                    writer.newLine();
+            try {
+                try {
+                    FileWriter fileWriter = new FileWriter(file);
+                    BufferedWriter writer = new BufferedWriter(fileWriter);
+
+                    for (Map.Entry<String, String> entry : useracts.entrySet()) {
+                        writer.write(entry.getKey() + "," + entry.getValue());
+                        writer.newLine();
+                    }
+                    writer.flush();
+                    writer.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
-}

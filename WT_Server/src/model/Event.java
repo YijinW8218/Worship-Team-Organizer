@@ -30,9 +30,13 @@ public class Event {
     public ArrayList<Song> getSongs() {return songs;} //notice: returned an ArrayList
 
     public void addSong(String name, String author) {
-        Song song = new Song(name, author); // create song instance
-        if (songs.contains(song)) {return;} //if the song already exist in the list, don't do anything
-        songs.add(song); //add the song to songs
+        Song song = new Song(name, author);
+        for (Song s : songs) {
+            if (s.getName().equals(name)) {
+                return;
+            }
+        }//if the song already exist in the list, don't do anything
+        songs.add(song);
     }
 
     public void removeSong(String name) {
