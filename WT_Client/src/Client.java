@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
 
@@ -7,6 +8,7 @@ public class Client {
     private OutputStreamWriter outputStreamWriter = null;
     private BufferedReader bufferedReader = null;
     private BufferedWriter bufferedWriter = null;
+    private ConnectionCallback connection; //callback GUIs
 
 
     public void connect() {
@@ -39,7 +41,21 @@ public class Client {
                         printEventList(msgRecieve);
                     } else if ((msgRecieve.startsWith("Songs List:"))) {
                         printSongList(msgRecieve);
-                    } else {
+                    }
+                    //feedback login to GUI
+                    else if (msgRecieve.equals("Successfully logged in.") || msgRecieve.equals("Fail to log in. Try again.")) {
+                        final String msg = msgRecieve;
+                        SwingUtilities.invokeLater(() -> {
+                            if (connection != null) connection.onMessage(msg);
+                        });}
+                    //feedback register to GUI
+                    else if (msgRecieve.equals("Successfully register. Welcome.") || msgRecieve.equals("Username already exists. Try again with another username.")) {
+                        final String msg = msgRecieve;
+                        SwingUtilities.invokeLater(() -> {
+                            if (connection != null) connection.onMessage(msg);
+                        });}
+
+                    else {
                         System.out.println("Server:" + msgRecieve);
                     }
                 }
@@ -69,5 +85,31 @@ public class Client {
                 System.out.println(s.trim());
             }
         }
+    }
+
+
+    //GUI request log in
+    public void logInGUI(String username, String password) {
+        try {
+            String command_msg = "LOGIN|" + username + "|" + password;
+            send(command_msg);
+        }catch (Exception ex) {
+            System.out.println("Try again.");
+        }
+    }
+
+    //GUI request register
+    public void registerGUI(String username, String password) {
+        try {
+            String command_msg = "REGISTER|" + username + "|" + password;
+            send(command_msg);
+        }catch (Exception ex) {
+            System.out.println("Try again.");
+        }
+    }
+
+
+    public void setConnectionCallback(ConnectionCallback connection) {
+        this.connection = connection;
     }
 }
