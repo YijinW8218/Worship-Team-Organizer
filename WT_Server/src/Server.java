@@ -6,6 +6,7 @@ import storage.UserActivity;
 import storage.UsersInfo;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -28,15 +29,33 @@ public class Server {
     private static final Set<ClientHandler> clients = ConcurrentHashMap.newKeySet();
 
     public static void main(String[] args) {
-        try (ServerSocket serverSocket = new ServerSocket(1234)) {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            synchronized (DATA_LOCK) {
+                calendar.save();
+                usersInfo.save();
+            }
+            System.out.println("[SERVER] Shutdown requested. Data saved.");
+        }));
+
+        try (ServerSocket serverSocket = new ServerSocket()) {
+            serverSocket.setReuseAddress(true);
+            serverSocket.bind(new InetSocketAddress(1234));
             System.out.println("Multi-client server started on port 1234. Waiting for clients...");
             while (true) {
-                Socket client = serverSocket.accept();
-                System.out.println("[SERVER] Accepted client " + client);
-                ClientHandler handler = new ClientHandler(client);
-                clients.add(handler);
-                System.out.println("[SERVER] Online clients: " + clients.size());
-                handler.start();
+                try {
+                    Socket client = serverSocket.accept();
+                    System.out.println("[SERVER] Accepted client " + client);
+                    ClientHandler handler = new ClientHandler(client);
+                    clients.add(handler);
+                    System.out.println("[SERVER] Online clients: " + clients.size());
+                    handler.start();
+                } catch (IOException e) {
+                    if (serverSocket.isClosed()) {
+                        break;
+                    }
+                    System.out.println("[SERVER] Failed to accept a client. Server is still running.");
+                    e.printStackTrace();
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -296,6 +315,9 @@ public class Server {
             } finally {
                 clients.remove(this);
                 System.out.println("[SERVER] Removed client " + client + ". Online clients: " + clients.size());
+                if (clients.isEmpty()) {
+                    System.out.println("[SERVER] No clients connected. Server is still waiting for new clients.");
+                }
                 try {
                     client.close();
                 } catch (IOException ignored) {

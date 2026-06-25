@@ -32,6 +32,8 @@ cd /Users/annawang-11/Documents/GitHub/Worship-Team-Organizer
 
 Open more terminals and run the same client command if you want multiple users online at the same time.
 
+The server keeps running even after every client window is closed. It waits for the next client until you manually stop it with `Ctrl+C` in the server terminal.
+
 ## Login and Register
 
 When the client window opens:
@@ -108,6 +110,14 @@ If a client times out:
 If the server says the port is already in use, another server is still running. Stop the old server first, then run `./run_server.sh` again.
 
 Do not start the server from a random directory with a manual `java Server` command. The app stores data in CSV files inside `WT_Server`, and `run_server.sh` starts from the correct folder.
+
+If all clients are closed, the server should print:
+
+```text
+[SERVER] No clients connected. Server is still waiting for new clients.
+```
+
+This is normal. Leave the server running if you want to open another client later.
 
 ## Project Structure
 
