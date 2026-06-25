@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
@@ -7,8 +8,22 @@ public class Client {
     private static Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
+        if (System.getProperty("use.cli") == null) {
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    ClientConnection connection = new ClientConnection("localhost", 1234);
+                    Login loginFrame = new Login(connection);
+                    loginFrame.setVisible(true);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(null, "Cannot connect to server: " + ex.getMessage());
+                }
+            });
+            return;
+        }
+
         try {
             Socket socket = new Socket("localhost", 1234);
+            socket.setSoTimeout(10000);
             InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
             BufferedReader reader = new BufferedReader(inputStreamReader);
@@ -33,15 +48,17 @@ public class Client {
                             System.out.println("Enter password:");
                             String password = scanner.nextLine().trim();
 
-                            String command_msg = "LOGIN|" + username + "|" + password;
-                            // send to server
-                            writer.write(command_msg);
-                            writer.newLine();
-                            writer.flush();
+                            String response = sendCommandForResponse(writer, reader,
+                                    "LOGIN|" + username + "|" + password);
+                            if ("LOGIN_SUCCESS".equals(response)) {
+                                running = false;
+                                System.out.println("You have logged in.");
+                            } else {
+                                System.out.println("Username or password is incorrect.");
+                            }
                         } catch (Exception ex) {
                             System.out.println("Try again.");
                         }
-                        break;
                     }
 
                     //handle register command
@@ -52,22 +69,20 @@ public class Client {
                             System.out.println("Enter password:");
                             String password = scanner.nextLine().trim();
 
-                            String command_msg = "REGISTER|" + username + "|" + password;
-                            // send to server
-                            writer.write(command_msg);
-                            writer.newLine();
-                            writer.flush();
+                            String response = sendCommandForResponse(writer, reader,
+                                    "REGISTER|" + username + "|" + password);
+                            if ("REGISTER_SUCCESS".equals(response)) {
+                                running = false;
+                                System.out.println("You have registered and logged in.");
+                            } else {
+                                System.out.println("Username already exists.");
+                            }
                         } catch (Exception ex) {
                             System.out.println("Try again.");
                         }
-                        break;
                     } else {
                         System.out.println("Invalid input. Try again.");
                     }
-
-                    running = false;
-                    System.out.println("You have logged in.");
-                    break;
                 }
 
 
@@ -85,11 +100,9 @@ public class Client {
                             System.out.print("Enter title: ");
                             String title = scanner.nextLine().trim();
 
-                            String command_msg = "ADD_EVENT|" + dateString + "|" + timeString + "|" + title;
-                            // send to server
-                            writer.write(command_msg);
-                            writer.newLine();
-                            writer.flush();
+                            String response = sendCommandForResponse(writer, reader,
+                                    "ADD_EVENT|" + dateString + "|" + timeString + "|" + title);
+                            System.out.println(response);
                         } catch (Exception ex) {
                             System.out.println("Invalid format. Try again.");
                         }
@@ -98,15 +111,12 @@ public class Client {
                             System.out.print("Enter date (ex.2026-04-06): ");
                             String dateString = scanner.nextLine().trim();
 
-                            String command_msg = "LIST_EVENT|" + dateString;
-                            // send to server
-                            writer.write(command_msg);
-                            writer.newLine();
-                            writer.flush();
-                            // Client listen to server and print the list.
-                            String msgReceive = reader.readLine();
+                            String msgReceive = sendCommandForResponse(writer, reader,
+                                    "LIST_EVENT|" + dateString);
                             if (msgReceive.startsWith("Events List:")) {
                                 printEventList(msgReceive);
+                            } else {
+                                System.out.println(msgReceive);
                             }
                         } catch (Exception ex) {
                             System.out.println("Invalid format. Try again.");
@@ -116,12 +126,9 @@ public class Client {
                             System.out.print("Enter the title of the event: ");
                             String title = scanner.nextLine().trim();
 
-                            String command_msg = "REMOVE_EVENT|" + title;
-                            // send to server
-                            writer.write(command_msg);
-                            writer.newLine();
-                            writer.flush();
-                            //server will receive and delete the event
+                            String response = sendCommandForResponse(writer, reader,
+                                    "REMOVE_EVENT|" + title);
+                            System.out.println(response);
                         } catch (Exception ex) {
                             System.out.println("Invalid format. Try again.");
                         }
@@ -130,26 +137,16 @@ public class Client {
                             //first, list events
                             System.out.println("Enter date to see events' titles:(ex.2026-04-06)");
                             String dateString = scanner.nextLine().trim();
-                            String command_msg = "LIST_EVENT|" + dateString;
-                            // send to server
-                            writer.write(command_msg);
-                            writer.newLine();
-                            writer.flush();
-                            // Client listen to server and print the list.
-                            String msgReceive = reader.readLine();
+                            String msgReceive = sendCommandForResponse(writer, reader,
+                                    "LIST_EVENT|" + dateString);
                             if (msgReceive.startsWith("Events List:")) {
                                 printEventList(msgReceive);
                             }
                             //second, choose event to add/remove songs
                             System.out.println("Enter the title of event which you want to edit songs");
                             String title = scanner.nextLine().trim();
-                            String command_msg2 = "LIST_SONGS|" + title;
-                            // send to server
-                            writer.write(command_msg2);
-                            writer.newLine();
-                            writer.flush();
-                            // Client listen to server and print the list.
-                            String msgReceive2 = reader.readLine();
+                            String msgReceive2 = sendCommandForResponse(writer, reader,
+                                    "LIST_SONGS|" + title);
                             if (msgReceive2.startsWith("Songs List:")) {
                                 printSongList(msgReceive2);
                             }
@@ -164,20 +161,16 @@ public class Client {
                                     String name = scanner.nextLine().trim();
                                     System.out.println("Enter the author of the song:");
                                     String author = scanner.nextLine().trim();
-                                    String command_msg3 = "ADD_SONG|" + title + "|" + name + "|" + author;
-                                    // send to server
-                                    writer.write(command_msg3);
-                                    writer.newLine();
-                                    writer.flush();
+                                    String response = sendCommandForResponse(writer, reader,
+                                            "ADD_SONG|" + title + "|" + name + "|" + author);
+                                    System.out.println(response);
                                     break;
                                 } else if (c.equals("2")) { //choose to remove a song
                                     System.out.println("Enter the name of the song that you want to remove:");
                                     String name = scanner.nextLine().trim();
-                                    String command_msg4 = "REMOVE_SONG|" + title + "|" + name;
-                                    // send to server
-                                    writer.write(command_msg4);
-                                    writer.newLine();
-                                    writer.flush();
+                                    String response = sendCommandForResponse(writer, reader,
+                                            "REMOVE_SONG|" + title + "|" + name);
+                                    System.out.println(response);
                                     break;
                                 } else {
                                     System.out.println("Invalid format. Try again.");
@@ -192,26 +185,16 @@ public class Client {
                             //first, list events
                             System.out.println("Enter date to see events' titles:(ex.2026-04-06)");
                             String dateString = scanner.nextLine().trim();
-                            String command_msg = "LIST_EVENT|" + dateString;
-                            // send to server
-                            writer.write(command_msg);
-                            writer.newLine();
-                            writer.flush();
-                            // Client listen to server and print the list.
-                            String msgReceive3 = reader.readLine();
+                            String msgReceive3 = sendCommandForResponse(writer, reader,
+                                    "LIST_EVENT|" + dateString);
                             if (msgReceive3.startsWith("Events List:")) {
                                 printEventList(msgReceive3);
                             }
                             //second, choose event to add/remove members
                             System.out.println("Enter the title of event which you want to edit the team");
                             String title = scanner.nextLine().trim();
-                            String command_msg2 = "LIST_MEMBERS|" + title;
-                            // send to server
-                            writer.write(command_msg2);
-                            writer.newLine();
-                            writer.flush();
-                            // Client listen to server and print the list.
-                            String msgReceive4 = reader.readLine();
+                            String msgReceive4 = sendCommandForResponse(writer, reader,
+                                    "LIST_MEMBERS|" + title);
                             if (msgReceive4.startsWith("Members List:")) {
                                 System.out.println(msgReceive4);
                             }
@@ -224,20 +207,16 @@ public class Client {
                                 if (c.equals("1")) { //choose to add a member
                                     System.out.println("Enter the name of the member that you want to add:");
                                     String name = scanner.nextLine().trim();
-                                    String command_msg3 = "ADD_MEMBER|" + title + "|" + name;
-                                    // send to server
-                                    writer.write(command_msg3);
-                                    writer.newLine();
-                                    writer.flush();
+                                    String response = sendCommandForResponse(writer, reader,
+                                            "ADD_MEMBER|" + title + "|" + name);
+                                    System.out.println(response);
                                     break;
                                 } else if (c.equals("2")) { //choose to remove a member
                                     System.out.println("Enter the name of the member that you want to remove:");
                                     String name = scanner.nextLine().trim();
-                                    String command_msg4 = "REMOVE_MEMBER|" + title + "|" + name;
-                                    // send to server
-                                    writer.write(command_msg4);
-                                    writer.newLine();
-                                    writer.flush();
+                                    String response = sendCommandForResponse(writer, reader,
+                                            "REMOVE_MEMBER|" + title + "|" + name);
+                                    System.out.println(response);
                                     break;
                                 } else {
                                     System.out.println("Invalid format. Try again.");
@@ -257,6 +236,21 @@ public class Client {
                 }
             }
         }catch (IOException e) {e.printStackTrace();}
+    }
+
+    private static String sendCommandForResponse(
+            BufferedWriter writer,
+            BufferedReader reader,
+            String command
+    ) throws IOException {
+        writer.write(command);
+        writer.newLine();
+        writer.flush();
+        String response = reader.readLine();
+        if (response == null) {
+            throw new IOException("Server disconnected.");
+        }
+        return response;
     }
 
 
@@ -309,8 +303,10 @@ public class Client {
         System.out.print("Enter：");
     }
 
+    public static String getGUIdata(String data) {
+        return data;
+    }
 
 
 
 }
-

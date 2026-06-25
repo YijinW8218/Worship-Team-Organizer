@@ -37,6 +37,21 @@ public class UsersInfo {
         return null;
     }
 
+    public Member getOrCreateMember(String name, String role) {
+        Member member = getMemberByName(name);
+        if (member != null) {
+            member.setRole(role);
+            save();
+            return member;
+        }
+
+        int newId = users.size() + 1;
+        member = new Member(newId, name, "", role);
+        users.add(member);
+        save();
+        return member;
+    }
+
 
     // read from file
     private void load() {
@@ -52,8 +67,10 @@ public class UsersInfo {
 
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    String[] parts = line.split(",");
-                    if (parts.length == 3) {
+                    String[] parts = line.split(",", 4);
+                    if (parts.length >= 4) {
+                        users.add(new Member(Integer.parseInt(parts[0]), parts[1], parts[2], parts[3]));
+                    } else if (parts.length == 3) {
                         users.add(new Member(Integer.parseInt(parts[0]), parts[1], parts[2])); // new member with id, username, password
                     }
                 }
@@ -73,7 +90,7 @@ public class UsersInfo {
                 FileWriter fileWriter = new FileWriter(file);
                 BufferedWriter writer = new BufferedWriter(fileWriter);
                 for (Member m : users) {
-                    writer.write(m.getId() + "," + m.getUserName() + "," + m.getPassword());
+                    writer.write(m.getId() + "," + m.getUserName() + "," + m.getPassword() + "," + m.getRole());
                     writer.newLine();
                 }
                 writer.flush();

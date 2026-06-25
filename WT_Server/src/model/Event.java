@@ -7,6 +7,7 @@ public class Event {
     private LocalDate date;
     private LocalTime time;
     private String title;  //topic of the sermon
+    private String topic = "";
     private ArrayList<Song> songs = new ArrayList<>();
     private ArrayList<Member> team = new ArrayList<>(); //members who signed up to serve this event
 
@@ -27,6 +28,9 @@ public class Event {
     public String getTitle() {return title;}
     public void setTitle(String title) {this.title = title;}
 
+    public String getTopic() {return topic;}
+    public void setTopic(String topic) {this.topic = topic == null ? "" : topic;}
+
     public ArrayList<Song> getSongs() {return songs;} //notice: returned an ArrayList
 
     public void addSong(String name, String author) {
@@ -39,8 +43,10 @@ public class Event {
         songs.add(song);
     }
 
-    public void removeSong(String name) {
-        songs.removeIf(song -> song.getName().equalsIgnoreCase(name));
+    public boolean removeSong(String name) {
+        int beforeSize = songs.size();
+        songs.removeIf(song -> song.getName().trim().equalsIgnoreCase(name.trim()));
+        return songs.size() < beforeSize;
     }
 
     public ArrayList<Member> getTeam() {return team;}
@@ -61,6 +67,7 @@ public class Event {
         sb.append("Date:").append(getDate()).append("|");
         sb.append("Time:").append(getTime()).append("|");
         sb.append("Title:").append(getTitle()).append("|");
+        sb.append("Topic:").append(getTopic()).append("|");
 
         sb.append("Songs:" + "|");
         for (Song song : getSongs()) {

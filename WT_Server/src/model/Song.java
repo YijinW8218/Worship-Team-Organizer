@@ -18,6 +18,9 @@ public class Song {
 
     @Override
     public String toString() {
+        if (author == null || author.isBlank()) {
+            return name;
+        }
         return this.name + " by " + this.author;
     }
 }
