@@ -118,6 +118,8 @@ public class Login extends JFrame {
         String message;
         if ("LOGIN_FAIL".equals(response)) {
             message = "Username or password is incorrect.";
+        } else if ("LOGIN_ALREADY_ONLINE".equals(response)) {
+            message = "This account is already logged in on another client.";
         } else if ("REGISTER_FAIL".equals(response)) {
             message = "Username already exists.";
         } else {

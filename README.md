@@ -1,6 +1,6 @@
 # Worship Team Organizer
 
-Worship Team Organizer is a Java client-server application for planning worship team events. It helps users manage event schedules, service topics, song lists, team members, and user activity records.
+Worship Team Organizer is a Java client-server application for planning worship team events. It helps users manage event schedules, service topics, song lists, team members, and user activity records. This is currently a local-only multi-client project: the server and clients are intended to run on the same machine using `localhost`.
 
 ## Requirements
 
@@ -31,6 +31,15 @@ cd /Users/annawang-11/Documents/GitHub/Worship-Team-Organizer
 ```
 
 Open more terminals and run the same client command if you want multiple users online at the same time.
+
+For the multi-user GUI demo, start separate client windows with:
+
+```bash
+./run_client2.sh
+./run_client3.sh
+```
+
+Run each command in a different terminal while the server is still running.
 
 The server keeps running even after every client window is closed. It waits for the next client until you manually stop it with `Ctrl+C` in the server terminal.
 
@@ -85,7 +94,7 @@ To test collaboration:
 
 1. Start the server with `./run_server.sh`.
 2. Start one client with `./run_client.sh` and log in.
-3. Start another client with `./run_client.sh` and register or log in as another user.
+3. Start another client with `./run_client2.sh` or `./run_client3.sh` and register or log in as another user.
 4. Add or edit an event in one client.
 5. The other connected client refreshes its dashboard data automatically.
 
@@ -149,3 +158,7 @@ The server stores app data in CSV files:
 - `WT_Server/users.csv`: registered users and team member data
 - `WT_Server/events.csv`: event, topic, song, and team assignment data
 - `WT_Server/userActivitiesLog.csv`: user activity history
+
+## Acknowledgement
+
+The GUI and multi-user features of this project were completed with assistance from Codex.

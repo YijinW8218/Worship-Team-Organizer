@@ -53,6 +53,8 @@ public class Client {
                             if ("LOGIN_SUCCESS".equals(response)) {
                                 running = false;
                                 System.out.println("You have logged in.");
+                            } else if ("LOGIN_ALREADY_ONLINE".equals(response)) {
+                                System.out.println("This account is already logged in on another client.");
                             } else {
                                 System.out.println("Username or password is incorrect.");
                             }

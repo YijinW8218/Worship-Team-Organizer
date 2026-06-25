@@ -27,6 +27,7 @@ public class Server {
     private static UserActivity userActivity = new UserActivity();
     private static final Object DATA_LOCK = new Object();
     private static final Set<ClientHandler> clients = ConcurrentHashMap.newKeySet();
+    private static final Set<String> loggedInUsers = ConcurrentHashMap.newKeySet();
 
     public static void main(String[] args) {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -89,8 +90,13 @@ public class Server {
                 String password = parts[2];
 
                 if (usersInfo.login(username, password)) {
+                    if (loggedInUsers.contains(username)) {
+                        System.out.println("Login rejected because user is already online: " + username);
+                        return new CommandResult("LOGIN_ALREADY_ONLINE", false);
+                    }
                     clientHandler.setCurrentUser(username);
-                    System.out.println("Successfully logged in.");
+                    loggedInUsers.add(username);
+                    System.out.println("Successfully logged in: " + username);
                     return new CommandResult("LOGIN_SUCCESS", false);
                 }
                 System.out.println("Fail to log in. Try again.");
@@ -106,6 +112,7 @@ public class Server {
                 String password = parts[2];
                 if (usersInfo.register(username, password)) {
                     clientHandler.setCurrentUser(username);
+                    loggedInUsers.add(username);
                     System.out.println("Successfully registered user: " + username);
                     return new CommandResult("REGISTER_SUCCESS", false);
                 }
@@ -313,6 +320,11 @@ public class Server {
             } catch (IOException e) {
                 System.out.println("Client disconnected: " + client);
             } finally {
+                String disconnectedUser = currentUser;
+                if (disconnectedUser != null) {
+                    loggedInUsers.remove(disconnectedUser);
+                    System.out.println("[SERVER] User logged out: " + disconnectedUser);
+                }
                 clients.remove(this);
                 System.out.println("[SERVER] Removed client " + client + ". Online clients: " + clients.size());
                 if (clients.isEmpty()) {
@@ -348,6 +360,9 @@ public class Server {
         }
 
         void setCurrentUser(String currentUser) {
+            if (this.currentUser != null && !this.currentUser.equals(currentUser)) {
+                loggedInUsers.remove(this.currentUser);
+            }
             this.currentUser = currentUser;
         }
 
